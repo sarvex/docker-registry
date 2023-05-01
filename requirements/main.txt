@@ -6,4 +6,4 @@ PyYAML==5.4
 requests==2.3.0
 M2Crypto==0.22.3
 sqlalchemy==0.9.4
-setuptools==5.8
+setuptools==65.5.1
