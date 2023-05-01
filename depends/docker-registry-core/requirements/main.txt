@@ -1,4 +1,4 @@
 boto==2.34.0
-redis==2.10.3
+redis==4.4.4
 setuptools==65.5.1
 simplejson==3.6.2
