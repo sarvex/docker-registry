@@ -32,12 +32,17 @@ class TestCase(unittest.TestCase):
         self.http_client.open = _open
 
     def gen_random_string(self, length=16):
-        return ''.join([random.choice(string.ascii_uppercase + string.digits)
-                        for x in range(length)]).lower()
+        return ''.join(
+            [
+                random.choice(string.ascii_uppercase + string.digits)
+                for _ in range(length)
+            ]
+        ).lower()
 
     def gen_hex_string(self, length=16):
-        return ''.join([random.choice(string.hexdigits)
-                        for x in range(length)]).lower()
+        return ''.join(
+            [random.choice(string.hexdigits) for _ in range(length)]
+        ).lower()
 
     def set_image_checksum(self, image_id, checksum):
         headers = {'X-Docker-Checksum-Payload': checksum}

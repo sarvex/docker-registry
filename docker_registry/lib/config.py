@@ -66,8 +66,8 @@ class Config(object):
                 result = yaml.load(os.environ.get(varname, vardefault))
             except Exception as e:
                 raise exceptions.ConfigError(
-                    'Config `%s` (value: `%s`) is not valid: %s' % (
-                        varname, e, result))
+                    f'Config `{varname}` (value: `{e}`) is not valid: {result}'
+                )
         # Dicts are rewrapped inside a Config object
         if isinstance(result, dict):
             result = Config(result)
@@ -90,15 +90,14 @@ def _init():
     try:
         f = open(config_path)
     except Exception:
-        raise exceptions.FileNotFoundError(
-            'Heads-up! File is missing: %s' % config_path)
+        raise exceptions.FileNotFoundError(f'Heads-up! File is missing: {config_path}')
 
     conf = Config(f.read())
     if flavor:
         if flavor not in conf:
             raise exceptions.ConfigError(
-                'The specified flavor (%s) is missing in your config file (%s)'
-                % (flavor, config_path))
+                f'The specified flavor ({flavor}) is missing in your config file ({config_path})'
+            )
         conf = conf[flavor]
         conf.flavor = flavor
 
@@ -107,7 +106,8 @@ def _init():
             f = open(conf.privileged_key)
         except Exception:
             raise exceptions.FileNotFoundError(
-                'Heads-up! File is missing: %s' % conf.privileged_key)
+                f'Heads-up! File is missing: {conf.privileged_key}'
+            )
 
         try:
             pk = f.read().split('\n')
@@ -119,7 +119,8 @@ def _init():
             conf.privileged_key = RSA.load_pub_key_bio(bio)
         except Exception:
             raise exceptions.ConfigError(
-                'Key at %s is not a valid RSA key' % conf.privileged_key)
+                f'Key at {conf.privileged_key} is not a valid RSA key'
+            )
         f.close()
 
     if conf.index_endpoint:

@@ -76,9 +76,8 @@ def set(f):
             logging.warning("LRU: Redis connection error: {0}".format(e))
 
         return f(*args)
-    if redis_conn is None:
-        return f
-    return wrapper
+
+    return f if redis_conn is None else wrapper
 
 
 def get(f):
@@ -98,9 +97,8 @@ def get(f):
             except redis.exceptions.ConnectionError as e:
                 logging.warning("LRU: Redis connection error: {0}".format(e))
         return content
-    if redis_conn is None:
-        return f
-    return wrapper
+
+    return f if redis_conn is None else wrapper
 
 
 def get_by_key(key):
@@ -122,6 +120,5 @@ def remove(f):
         except redis.exceptions.ConnectionError as e:
             logging.warning("LRU: Redis connection error: {0}".format(e))
         return f(*args)
-    if redis_conn is None:
-        return f
-    return wrapper
+
+    return f if redis_conn is None else wrapper

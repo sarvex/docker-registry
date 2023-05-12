@@ -20,4 +20,4 @@ def boot(application, api_key, flavor, version):
                               )
             bugsnag.flask.handle_exceptions(application)
         except Exception as e:
-            raise Exception('Failed to init bugsnag agent %s' % e)
+            raise Exception(f'Failed to init bugsnag agent {e}')

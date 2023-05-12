@@ -44,8 +44,12 @@ class Driver(object):
         pass
 
     def gen_random_string(self, length=16):
-        return ''.join([random.choice(string.ascii_uppercase + string.digits)
-                        for x in range(length)]).lower()
+        return ''.join(
+            [
+                random.choice(string.ascii_uppercase + string.digits)
+                for _ in range(length)
+            ]
+        ).lower()
 
     def simplehelp(self, path, content, expected, size=0):
         self._storage.put_content(path, content)
@@ -105,13 +109,13 @@ class Driver(object):
         filename = self.gen_random_string()
         content = self.gen_random_string().encode('utf8')
         expected = content
-        self.simplehelp(filename, content, expected, len(expected))
+        self.simplehelp(filename, expected, expected, len(expected))
 
     def test_write_read_6(self):
         filename = self.gen_random_string()
         content = self.gen_random_string(1024 * 1024).encode('utf8')
         expected = content
-        self.simplehelp(filename, content, expected, len(expected))
+        self.simplehelp(filename, expected, expected, len(expected))
 
     # get / put unicode
     def test_unicode_1(self):
@@ -144,13 +148,13 @@ class Driver(object):
         filename = self.gen_random_string()
         content = self.gen_random_string()
         expected = content
-        self.unicodehelp(filename, content, expected)
+        self.unicodehelp(filename, expected, expected)
 
     def test_unicode_6(self):
         filename = self.gen_random_string()
         content = self.gen_random_string(1024 * 1024)
         expected = content
-        self.unicodehelp(filename, content, expected)
+        self.unicodehelp(filename, expected, expected)
 
     # JSON
     def test_json(self):
@@ -172,8 +176,8 @@ class Driver(object):
         filename1 = self.gen_random_string()
         filename2 = self.gen_random_string()
         content = self.gen_random_string().encode('utf8')
-        self._storage.put_content('%s/%s' % (dirname, filename1), content)
-        self._storage.put_content('%s/%s' % (dirname, filename2), content)
+        self._storage.put_content(f'{dirname}/{filename1}', content)
+        self._storage.put_content(f'{dirname}/{filename2}', content)
         self._storage.remove(dirname)
         assert not self._storage.exists(filename1)
         assert not self._storage.exists(filename2)
@@ -212,13 +216,13 @@ class Driver(object):
         content = self.gen_random_string(7).encode('utf8')  # * 1024 * 1024
         # test exists
         io = compat.StringIO(content)
-        logger.debug("%s should NOT exists still" % filename)
+        logger.debug(f"{filename} should NOT exists still")
         assert not self._storage.exists(filename)
 
         self._storage.stream_write(filename, io)
         io.close()
 
-        logger.debug("%s should exist now" % filename)
+        logger.debug(f"{filename} should exist now")
         assert self._storage.exists(filename)
 
         # test read / write
@@ -276,8 +280,8 @@ class Driver(object):
         base = self.gen_random_string()
         filename1 = self.gen_random_string()
         filename2 = self.gen_random_string()
-        fb1 = '%s/%s' % (base, filename1)
-        fb2 = '%s/%s' % (base, filename2)
+        fb1 = f'{base}/{filename1}'
+        fb2 = f'{base}/{filename2}'
         content = self.gen_random_string().encode('utf8')
         self._storage.put_content(fb1, content)
         self._storage.put_content(fb2, content)
@@ -292,10 +296,10 @@ class Driver(object):
         dir2 = self.gen_random_string()
         filename1 = self.gen_random_string()
         filename2 = self.gen_random_string()
-        fd1 = '%s/%s' % (base, dir1)
-        fd2 = '%s/%s' % (base, dir2)
-        fb1 = '%s/%s' % (fd1, filename1)
-        fb2 = '%s/%s' % (fd2, filename2)
+        fd1 = f'{base}/{dir1}'
+        fd2 = f'{base}/{dir2}'
+        fb1 = f'{fd1}/{filename1}'
+        fb2 = f'{fd2}/{filename2}'
         content = self.gen_random_string().encode('utf8')
         self._storage.put_content(fb1, content)
         self._storage.put_content(fb2, content)
@@ -317,8 +321,8 @@ class Driver(object):
         base = self.gen_random_string()
         filename1 = self.gen_random_string()
         filename2 = self.gen_random_string()
-        fb1 = '%s/%s' % (base, filename1)
-        fb2 = '%s/%s' % (base, filename2)
+        fb1 = f'{base}/{filename1}'
+        fb2 = f'{base}/{filename2}'
         content = self.gen_random_string().encode('utf8')
         self._storage.put_content(fb1, content)
         self._storage.put_content(fb2, content)

@@ -33,7 +33,7 @@ class Storage(s3.Storage):
         total_size = 0
         key = self._boto_bucket.lookup(path)
         if not key:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
         if bytes_range:
             key._last_position = bytes_range[0]
             total_size = bytes_range[1] - bytes_range[0] + 1

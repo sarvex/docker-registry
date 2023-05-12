@@ -39,10 +39,11 @@ def lookup_source(path, stream=False, source=None):
             return
         source = cfg.mirroring.source
     source_url = '{0}{1}'.format(source, path)
-    headers = {}
-    for k, v in flask.request.headers.iteritems():
-        if k.lower() != 'location' and k.lower() != 'host':
-            headers[k] = v
+    headers = {
+        k: v
+        for k, v in flask.request.headers.iteritems()
+        if k.lower() not in ['location', 'host']
+    }
     logger.debug('Request: GET {0}\nHeaders: {1}\nArgs: {2}'.format(
         source_url, headers, flask.request.args
     ))
@@ -207,12 +208,12 @@ def _handle_mirrored_layer(source_resp, layer_path, store, headers):
     sr.add_handler(hndlr)
 
     def generate():
-        for chunk in sr.iterate(store.buffer_size):
-            yield chunk
+        yield from sr.iterate(store.buffer_size)
         # FIXME: this could be done outside of the request context
         tmp.seek(0)
         store.stream_write(layer_path, tmp)
         tmp.close()
+
     return flask.Response(generate(), headers=dict(headers))
 
 
@@ -230,9 +231,7 @@ def store_mirrored_data(data, endpoint, args, store):
     if not path_method:
         return
     logger.debug('Path method: {0}'.format(path_method))
-    pm_args = {}
-    for arg in arglist:
-        pm_args[arg] = args[arg]
+    pm_args = {arg: args[arg] for arg in arglist}
     logger.debug('Path method args: {0}'.format(pm_args))
     storage_path = getattr(store, path_method)(**pm_args)
     logger.debug('Storage path: {0}'.format(storage_path))

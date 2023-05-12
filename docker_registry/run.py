@@ -48,10 +48,7 @@ def run_gunicorn():
         print('error: gunicorn executable not found', file=sys.stderr)
         sys.exit(1)
 
-    address = '%s:%s' % (
-        env.source('REGISTRY_HOST'),
-        env.source('REGISTRY_PORT')
-    )
+    address = f"{env.source('REGISTRY_HOST')}:{env.source('REGISTRY_PORT')}"
 
     args = [
         gunicorn_path, 'gunicorn',
@@ -73,12 +70,12 @@ def run_gunicorn():
     if user or group:
         if getpass.getuser() == 'root':
             if user:
-                logger.info('Downgrading privs to user %s' % user)
+                logger.info(f'Downgrading privs to user {user}')
                 args.append('-u')
                 args.append(user)
 
             if group:
-                logger.info('Downgrading privs to group %s' % user)
+                logger.info(f'Downgrading privs to group {user}')
                 args.append('-g')
                 args.append(group)
         else:

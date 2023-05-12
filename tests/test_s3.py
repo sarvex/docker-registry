@@ -42,7 +42,7 @@ class TestDriver(testing.Driver):
         content = self.gen_random_string()
         self._storage.put_content(filename1, content)
         # Check bucket key is stored in normalized form
-        self._storage.put_content(filename2 + '/', content)
+        self._storage.put_content(f'{filename2}/', content)
         # Check both keys are in the bucket
         assert sorted([filename1, filename2]) == sorted(
             list(self._storage.list_directory()))
@@ -125,7 +125,7 @@ class TestDriver(testing.Driver):
         tags_path = store.tag_path('test', 'test')
         for fname in store.list_directory(tags_path):
             full_tag_name = fname.split('/').pop()
-            if not full_tag_name == 'tag_0.0.2':
+            if full_tag_name != 'tag_0.0.2':
                 continue
             try:
                 store.get_content(fname)
@@ -146,6 +146,7 @@ class TestDriver(testing.Driver):
         def mockExists():
             self.testCount += 1
             return self.testCount == 1
+
         mockKey.exists = mockExists
         mockKey.get_contents_as_string = lambda: "Foo bar"
         self._storage.makeKey = lambda x: mockKey
@@ -157,8 +158,7 @@ class TestDriver(testing.Driver):
         assert waitTime >= 0.1, ("Waiting time was less than %sms "
                                  "(actual : %sms)" %
                                  (0.1 * 1000, waitTime * 1000))
-        assert content == "Foo bar", ("expected : %s; actual: %s" %
-                                      ("Foo bar", content))
+        assert content == "Foo bar", f"expected : Foo bar; actual: {content}"
 
     @tools.raises(exceptions.FileNotFoundError)
     def test_too_many_read_retries(self):

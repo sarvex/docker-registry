@@ -18,7 +18,7 @@ fakeenv = {}
 
 def mockget(key, opt=None):
     if key in fakeenv:
-        print('%s key is %s' % (key, fakeenv[key]))
+        print(f'{key} key is {fakeenv[key]}')
         return fakeenv[key]
     return opt
 
@@ -69,15 +69,15 @@ class TestConfig(unittest.TestCase):
     def test_simple_types(self):
         conf = self.c
         assert conf.booltrue is True
-        assert not conf.booltrue == 'True'
+        assert conf.booltrue != 'True'
         assert conf.boolfalse is False
-        assert not conf.booltrue == 'False'
+        assert conf.booltrue != 'False'
         assert conf.uint == 10
-        assert not conf.uint == '10'
+        assert conf.uint != '10'
         assert conf.int == -10
-        assert not conf.int == '-10'
+        assert conf.int != '-10'
         assert conf.float == 0.01
-        assert not conf.float == '0.01'
+        assert conf.float != '0.01'
         assert conf.emptystring == ''
         assert conf.emptystring is not None
         assert conf.isnone is None

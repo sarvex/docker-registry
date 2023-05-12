@@ -78,7 +78,7 @@ def get_tags(namespace, repository):
             store.tag_path(namespace, repository, tag_name),
         )
     gevent.joinall(greenlets.values())
-    return dict((k, g.value) for (k, g) in greenlets.items())
+    return {k: g.value for (k, g) in greenlets.items()}
 
 
 @app.route('/v1/repositories/<path:repository>/tags', methods=['GET'])
@@ -237,7 +237,7 @@ def _delete_tag(namespace, repository, tag):
     try:
         delete_tag(namespace=namespace, repository=repository, tag=tag)
     except exceptions.FileNotFoundError:
-        return toolkit.api_error('Tag not found: %s' % tag, 404)
+        return toolkit.api_error(f'Tag not found: {tag}', 404)
     return toolkit.response()
 
 

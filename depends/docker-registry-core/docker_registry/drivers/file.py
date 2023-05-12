@@ -52,7 +52,7 @@ class Storage(driver.Base):
             with open(path, mode='rb') as f:
                 d = f.read()
         except Exception:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
 
         return d
 
@@ -92,7 +92,7 @@ class Storage(driver.Base):
                         break
                     yield buf
         except IOError:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
 
     def stream_write(self, path, fp):
         # Size is mandatory
@@ -100,17 +100,15 @@ class Storage(driver.Base):
         with open(path, mode='wb') as f:
             try:
                 while True:
-                    buf = fp.read(self.buffer_size)
-                    if not buf:
+                    if buf := fp.read(self.buffer_size):
+                        f.write(buf)
+                    else:
                         break
-                    f.write(buf)
             except IOError:
                 pass
 
     def list_directory(self, path=None):
-        prefix = ''
-        if path:
-            prefix = '%s/' % path
+        prefix = f'{path}/' if path else ''
         path = self._init_path(path)
         exists = False
         try:
@@ -120,7 +118,7 @@ class Storage(driver.Base):
         except Exception:
             pass
         if not exists:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
 
     def exists(self, path):
         path = self._init_path(path)
@@ -135,11 +133,11 @@ class Storage(driver.Base):
         try:
             os.remove(path)
         except OSError:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
 
     def get_size(self, path):
         path = self._init_path(path)
         try:
             return os.path.getsize(path)
         except OSError:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')

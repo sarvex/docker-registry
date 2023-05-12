@@ -32,18 +32,17 @@ if ver < (2, 6):
     raise Exception("Docker registry requires Python 2.6 or higher.")
 
 requirements_txt = open('./requirements/main.txt')
-requirements = [line for line in requirements_txt]
+requirements = list(requirements_txt)
 
 # Using this will relax dependencies to semver major matching
 if 'DEPS' in os.environ and os.environ['DEPS'].lower() == 'loose':
     loose = []
     for item in requirements:
-        d = re.match(r'([^=]+)==([0-9]+)[.]([0-9]+)[.]([0-9]+)', item)
-        if d:
+        if d := re.match(r'([^=]+)==([0-9]+)[.]([0-9]+)[.]([0-9]+)', item):
             d = list(d.groups())
             name = d.pop(0)
             version = d.pop(0)
-            item = '%s>=%s,<%s' % (name, int(version), int(version) + 1)
+            item = f'{name}>={int(version)},<{int(version) + 1}'
         loose.insert(0, item)
     requirements = loose
 

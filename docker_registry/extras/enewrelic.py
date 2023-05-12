@@ -7,4 +7,4 @@ def boot(config_file, license):
             import newrelic.agent
             newrelic.agent.initialize()
         except Exception as e:
-            raise Exception('Failed to init new relic agent %s' % e)
+            raise Exception(f'Failed to init new relic agent {e}')

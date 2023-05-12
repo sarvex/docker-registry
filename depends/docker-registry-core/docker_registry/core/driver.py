@@ -202,63 +202,65 @@ class Base(object):
     def get_content(self, path):
         """Method to get content."""
         raise NotImplementedError(
-            "You must implement get_content(self, path) on your storage %s" %
-            self.__class__.__name__)
+            f"You must implement get_content(self, path) on your storage {self.__class__.__name__}"
+        )
 
     def put_content(self, path, content):
         """Method to put content."""
         raise NotImplementedError(
-            "You must implement put_content(self, path, content) on %s" %
-            self.__class__.__name__)
+            f"You must implement put_content(self, path, content) on {self.__class__.__name__}"
+        )
 
     def stream_read(self, path, bytes_range=None):
         """Method to stream read."""
         raise NotImplementedError(
-            "You must implement stream_read(self, path, , bytes_range=None) " +
-            "on your storage %s" %
-            self.__class__.__name__)
+            f"You must implement stream_read(self, path, , bytes_range=None) on your storage {self.__class__.__name__}"
+        )
 
     def stream_write(self, path, fp):
         """Method to stream write."""
         raise NotImplementedError(
-            "You must implement stream_write(self, path, fp) " +
-            "on your storage %s" %
-            self.__class__.__name__)
+            f"You must implement stream_write(self, path, fp) on your storage {self.__class__.__name__}"
+        )
 
     def list_directory(self, path=None):
         """Method to list directory."""
         raise NotImplementedError(
-            "You must implement list_directory(self, path=None) " +
-            "on your storage %s" %
-            self.__class__.__name__)
+            f"You must implement list_directory(self, path=None) on your storage {self.__class__.__name__}"
+        )
 
     def exists(self, path):
         """Method to test exists."""
         raise NotImplementedError(
-            "You must implement exists(self, path) on your storage %s" %
-            self.__class__.__name__)
+            f"You must implement exists(self, path) on your storage {self.__class__.__name__}"
+        )
 
     def remove(self, path):
         """Method to remove."""
         raise NotImplementedError(
-            "You must implement remove(self, path) on your storage %s" %
-            self.__class__.__name__)
+            f"You must implement remove(self, path) on your storage {self.__class__.__name__}"
+        )
 
     def get_size(self, path):
         """Method to get the size."""
         raise NotImplementedError(
-            "You must implement get_size(self, path) on your storage %s" %
-            self.__class__.__name__)
+            f"You must implement get_size(self, path) on your storage {self.__class__.__name__}"
+        )
 
 
 def fetch(name):
     try:
         # XXX The noqa below is because of hacking being non-sensical on this
-        module = __import__('docker_registry.drivers.%s' % name, globals(),
-                            locals(), ['Storage'], 0)  # noqa
-        logger.debug("Will return docker-registry.drivers.%s.Storage" % name)
+        module = __import__(
+            f'docker_registry.drivers.{name}',
+            globals(),
+            locals(),
+            ['Storage'],
+            0,
+        )
+        logger.debug(f"Will return docker-registry.drivers.{name}.Storage")
     except ImportError as e:
-        logger.warn("Got exception: %s" % e)
+        logger.warn(f"Got exception: {e}")
         raise NotImplementedError(
             """You requested storage driver docker_registry.drivers.%s
 which is not installed. Try `pip install docker-registry-driver-%s`

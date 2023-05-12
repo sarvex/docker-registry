@@ -60,7 +60,7 @@ class Base(driver.Base):
             'calling_format'
         ]
         for arg in config_args:
-            confkey = 'boto_' + arg
+            confkey = f'boto_{arg}'
             if getattr(self._config, confkey, None) is not None:
                 kwargs[arg] = getattr(self._config, confkey)
         return kwargs
@@ -79,9 +79,7 @@ class Base(driver.Base):
 
     def _init_path(self, path=None):
         path = os.path.join(self._root_path, path) if path else self._root_path
-        if path and path[0] == '/':
-            return path[1:]
-        return path
+        return path[1:] if path and path[0] == '/' else path
 
     def stream_read(self, path, bytes_range=None):
         path = self._init_path(path)
@@ -90,23 +88,21 @@ class Base(driver.Base):
             headers = {'Range': 'bytes={0}-{1}'.format(*bytes_range)}
         key = self._boto_bucket.lookup(path, headers=headers)
         if not key:
-            raise FileNotFoundError('%s is not there' % path)
+            raise FileNotFoundError(f'{path} is not there')
         while True:
-            buf = key.read(self.buffer_size)
-            if not buf:
+            if buf := key.read(self.buffer_size):
+                yield buf
+            else:
                 break
-            yield buf
 
     def list_directory(self, path=None):
         path = self._init_path(path)
         if not path.endswith('/'):
             path += '/'
-        ln = 0
-        if self._root_path != '/':
-            ln = len(self._root_path)
+        ln = len(self._root_path) if self._root_path != '/' else 0
         exists = False
         for key in self._boto_bucket.list(prefix=path, delimiter='/'):
-            if '%s/' % key.name == path:
+            if f'{key.name}/' == path:
                 continue
             exists = True
             name = key.name
@@ -115,22 +111,21 @@ class Base(driver.Base):
             else:
                 yield name[ln:]
         if not exists:
-            raise FileNotFoundError('%s is not there' % path)
+            raise FileNotFoundError(f'{path} is not there')
 
     def get_size(self, path):
         path = self._init_path(path)
-        # Lookup does a HEAD HTTP Request on the object
-        key = self._boto_bucket.lookup(path)
-        if not key:
-            raise FileNotFoundError('%s is not there' % path)
-        return key.size
+        if key := self._boto_bucket.lookup(path):
+            return key.size
+        else:
+            raise FileNotFoundError(f'{path} is not there')
 
     @lru.get
     def get_content(self, path):
         path = self._init_path(path)
         key = self.makeKey(path)
         if not key.exists():
-            raise FileNotFoundError('%s is not there' % path)
+            raise FileNotFoundError(f'{path} is not there')
         return key.get_contents_as_string()
 
     def exists(self, path):
@@ -151,9 +146,9 @@ class Base(driver.Base):
             path += '/'
         exists = False
         for key in self._boto_bucket.list(prefix=path, delimiter='/'):
-            if '%s/' % key.name == path:
+            if f'{key.name}/' == path:
                 continue
             exists = True
             key.delete()
         if not exists:
-            raise FileNotFoundError('%s is not there' % path)
+            raise FileNotFoundError(f'{path} is not there')

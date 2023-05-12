@@ -50,13 +50,12 @@ def get_parser():
 
 
 def get_redis_connection(options):
-    redis_conn = redis.StrictRedis(
+    return redis.StrictRedis(
         host=options.redis_host,
         port=options.redis_port,
         db=options.redis_db,
         password=options.redis_pw,
     )
-    return redis_conn
 
 
 def handle_request(layer_id, redis_conn):
@@ -76,17 +75,17 @@ def handle_request(layer_id, redis_conn):
         # on the key for this layer, immediately passing on LockTimeout
         # if one isn't availble
         with rlock.Lock(redis_conn,
-                        "diff-worker-lock",
-                        layer_id,
-                        expires=60 * 5):
+                                "diff-worker-lock",
+                                layer_id,
+                                expires=60 * 5):
             # first check if a cached result is already available. The registry
             # already does this, but hey.
             diff_data = layers.get_image_diff_cache(layer_id)
             if not diff_data:
-                log.info("Processing diff for %s" % layer_id)
+                log.info(f"Processing diff for {layer_id}")
                 layers.get_image_diff_json(layer_id)
     except rlock.LockTimeout:
-        log.info("Another worker is processing %s. Skipping." % layer_id)
+        log.info(f"Another worker is processing {layer_id}. Skipping.")
 
 if __name__ == '__main__':
     parser = get_parser()

@@ -164,8 +164,7 @@ class Storage(coreboto.Base):
         try:
             return super(Storage, self).get_content(path)
         except exceptions.FileNotFoundError as e:
-            if tries <= 3:
-                time.sleep(.1)
-                return self.get_content(path, tries + 1)
-            else:
+            if tries > 3:
                 raise e
+            time.sleep(.1)
+            return self.get_content(path, tries + 1)

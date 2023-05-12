@@ -57,7 +57,7 @@ def raw_line_parser(str_line):
     if temp_results is None:
         results['size'] = None
         return results
-    results['size'] = re.match(pattern_2, str_line).group(1)
+    results['size'] = re.match(pattern_2, str_line)[1]
     return results
 
 
@@ -75,10 +75,11 @@ def compute_bandwidth(str_end_time, str_start_time, str_layer_size):
     layer_size_kb = (layer_size * 8) / 1024  # Kilobits
     delta = end_time - start_time
     num_seconds = delta.total_seconds()
-    bandwidth = 0.0
-    if num_seconds and layer_size_kb > 100:
-        bandwidth = layer_size_kb / num_seconds  # Kilobits-per-second (KB/s)
-    return bandwidth
+    return (
+        layer_size_kb / num_seconds
+        if num_seconds and layer_size_kb > 100
+        else 0.0
+    )
 
 
 def cache_key(key):
@@ -192,15 +193,13 @@ def generate_bandwidth_data(start_time, min_time, time_interval):
             end_times[key] = str_end_time
         else:
             str_end_time = end_times.get(key)
-        bandwidth = compute_bandwidth(str_end_time,
-                                      str_start_time,
-                                      str_layer_size)
-        if bandwidth:
+        if bandwidth := compute_bandwidth(
+            str_end_time, str_start_time, str_layer_size
+        ):
             end_time = convert_str_to_datetime(str_end_time)
-            if last_time_parsed:
-                if last_time_parsed >= end_time:
-                    logger.info('Remaining data parsed already. Stopping...')
-                    break
+            if last_time_parsed and last_time_parsed >= end_time:
+                logger.info('Remaining data parsed already. Stopping...')
+                break
             if end_time < min_time:
                 logger.info('Minimum date reached. Stopping...')
                 break

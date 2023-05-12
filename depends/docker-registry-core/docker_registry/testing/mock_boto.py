@@ -48,9 +48,7 @@ class S3Connection(boto.s3.connection.S3Connection):
         return None
 
     def get_bucket(self, name, **kwargs):
-        # Create a bucket for testing
-        bucket = Bucket(connection=self, name=name, key_class=Key)
-        return bucket
+        return Bucket(connection=self, name=name, key_class=Key)
 
     def make_request(self, *args, **kwargs):
         return 'request result'

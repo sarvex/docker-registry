@@ -31,8 +31,13 @@ class Query(object):
     def testFetchingDriver(self):
         resultdriver = driver.fetch(self.scheme)
         # XXX hacking is sick
-        storage = __import__('docker_registry.drivers.%s' % self.scheme,
-                             globals(), locals(), ['Storage'], 0)  # noqa
+        storage = __import__(
+            f'docker_registry.drivers.{self.scheme}',
+            globals(),
+            locals(),
+            ['Storage'],
+            0,
+        )
 
         assert resultdriver == storage.Storage
         assert issubclass(resultdriver, driver.Base)

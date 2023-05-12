@@ -46,10 +46,10 @@ class TestWorkflow(base.TestCase):
         bufsize = 1024
         io = StringIO(data)
         while True:
-            buf = io.read(bufsize)
-            if not buf:
+            if buf := io.read(bufsize):
+                yield buf
+            else:
                 return
-            yield buf
         io.close()
 
     def upload_image(self, image_id, parent_id, token):
@@ -63,28 +63,31 @@ class TestWorkflow(base.TestCase):
         h = hashlib.sha256(json_data + '\n')
         h.update(layer)
         layer_checksum = 'sha256:{0}'.format(h.hexdigest())
-        resp = requests.put('{0}/v1/images/{1}/json'.format(
-            self.registry_endpoint, image_id),
+        resp = requests.put(
+            '{0}/v1/images/{1}/json'.format(self.registry_endpoint, image_id),
             data=json_data,
-            headers={'Authorization': 'Token ' + token,
-                     'User-Agent': ua,
-                     'X-Docker-Checksum': layer_checksum},
+            headers={
+                'Authorization': f'Token {token}',
+                'User-Agent': ua,
+                'X-Docker-Checksum': layer_checksum,
+            },
         )
 
         self.assertEqual(resp.status_code, 200, resp.text)
-        resp = requests.put('{0}/v1/images/{1}/layer'.format(
-            self.registry_endpoint, image_id),
+        resp = requests.put(
+            '{0}/v1/images/{1}/layer'.format(self.registry_endpoint, image_id),
             data=self.generate_chunk(layer),
-            headers={'Authorization': 'Token ' + token,
-                     'User-Agent': ua},
+            headers={'Authorization': f'Token {token}', 'User-Agent': ua},
         )
 
-        resp = requests.put('{0}/v1/images/{1}/checksum'.format(
-            self.registry_endpoint, image_id),
+        resp = requests.put(
+            '{0}/v1/images/{1}/checksum'.format(self.registry_endpoint, image_id),
             data={},
-            headers={'Authorization': 'Token ' + token,
-                     'X-Docker-Checksum-Payload': layer_checksum,
-                     'User-Agent': ua}
+            headers={
+                'Authorization': f'Token {token}',
+                'X-Docker-Checksum-Payload': layer_checksum,
+                'User-Agent': ua,
+            },
         )
 
         self.assertEqual(resp.status_code, 200, resp.text)
@@ -117,8 +120,7 @@ class TestWorkflow(base.TestCase):
         self.assertEqual(resp.status_code, 200, resp.text)
         self.token = resp.headers.get('x-docker-token')
         # Docker -> Registry
-        images_json = []
-        images_json.append(self.upload_image(parent_id, None, self.token))
+        images_json = [self.upload_image(parent_id, None, self.token)]
         images_json.append(self.upload_image(image_id, parent_id, self.token))
         # Updating the tags does not need a token, it will use the Cookie
         self.update_tag(namespace, repos, image_id, 'latest')
@@ -139,9 +141,9 @@ class TestWorkflow(base.TestCase):
         )
         self.assertEqual(resp.status_code, 200, resp.text)
 
-        resp = requests.get('{0}/v1/images/{1}/json'.format(
-            self.registry_endpoint, image_id),
-            headers={'Authorization': 'Token ' + self.token}
+        resp = requests.get(
+            '{0}/v1/images/{1}/json'.format(self.registry_endpoint, image_id),
+            headers={'Authorization': f'Token {self.token}'},
         )
         self.assertEqual(resp.status_code, 200, resp.text)
 
@@ -153,9 +155,9 @@ class TestWorkflow(base.TestCase):
         )
         self.assertEqual(resp.status_code, 200, resp.text)
 
-        resp = requests.get('{0}/v1/images/{1}/layer'.format(
-            self.registry_endpoint, image_id),
-            headers={'Authorization': 'Token ' + self.token}
+        resp = requests.get(
+            '{0}/v1/images/{1}/layer'.format(self.registry_endpoint, image_id),
+            headers={'Authorization': f'Token {self.token}'},
         )
         self.assertEqual(resp.status_code, 200, resp.text)
         return (json_data, checksum, resp.text)
@@ -176,9 +178,12 @@ class TestWorkflow(base.TestCase):
         self.token = resp.headers.get('x-docker-token')
         # Here we should use the 'X-Endpoints' returned in a real environment
         # Docker -> Registry
-        resp = requests.get('{0}/v1/repositories/{1}/{2}/tags/latest'.format(
-                            self.registry_endpoint, namespace, repos),
-                            headers={'Authorization': 'Token ' + self.token})
+        resp = requests.get(
+            '{0}/v1/repositories/{1}/{2}/tags/latest'.format(
+                self.registry_endpoint, namespace, repos
+            ),
+            headers={'Authorization': f'Token {self.token}'},
+        )
         self.assertEqual(resp.status_code, 200, resp.text)
 
         resp = requests.get('{0}/v1/repositories/{1}/{2}/tags/latest'.format(

@@ -17,7 +17,7 @@ filename = './docker_registry/server/__init__.py'
 exec(compile(open(filename, 'rb').read(), filename, 'exec'))
 
 requirements_txt = open('./requirements/main.txt')
-requirements = [line for line in requirements_txt]
+requirements = list(requirements_txt)
 
 if ver < (3, 0):
     # Python 2 requires lzma backport
@@ -31,13 +31,14 @@ if ver < (3, 0):
 if 'DEPS' in os.environ and os.environ['DEPS'].lower() == 'loose':
     loose = []
     for item in requirements:
-        d = re.match(r'([^=]+)==([0-9]+)[.]([0-9]+)(?:[.]([0-9]+))?(.*)', item)
-        if d:
+        if d := re.match(
+            r'([^=]+)==([0-9]+)[.]([0-9]+)(?:[.]([0-9]+))?(.*)', item
+        ):
             d = list(d.groups())
             name = d.pop(0)
             version = d.pop(0)
             add = d.pop()
-            item = '%s>=%s,<%s%s' % (name, int(version), int(version) + 1, add)
+            item = f'{name}>={int(version)},<{int(version) + 1}{add}'
         loose.insert(0, item)
     requirements = loose
 

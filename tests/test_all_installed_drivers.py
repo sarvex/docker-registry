@@ -19,10 +19,10 @@ def getinit(name):
 for name in driveengine.available():
     # The globals shenanigan is required so that the test tool find the tests
     # The dynamic type declaration is required because it is so
-    globals()['TestQuery%s' % name] = type('TestQuery%s' % name,
-                                           (testing.Query,),
-                                           dict(__init__=getinit(name)))
+    globals()[f'TestQuery{name}'] = type(
+        f'TestQuery{name}', (testing.Query,), dict(__init__=getinit(name))
+    )
 
-    globals()['TestDriver%s' % name] = type('TestDriver%s' % name,
-                                            (testing.Driver,),
-                                            dict(__init__=getinit(name)))
+    globals()[f'TestDriver{name}'] = type(
+        f'TestDriver{name}', (testing.Driver,), dict(__init__=getinit(name))
+    )

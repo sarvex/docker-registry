@@ -36,9 +36,7 @@ class Dumb(object):
 
     @lru.get
     def get(self, key):
-        if key not in self.value:
-            return None
-        return self.value[key]
+        return None if key not in self.value else self.value[key]
 
     @lru.set
     def set(self, key, value):

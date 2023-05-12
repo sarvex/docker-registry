@@ -64,8 +64,7 @@ def init():
     info = cfg.email_exceptions
     if info and info.smtp_host:
         mailhost = info.smtp_host
-        mailport = info.smtp_port
-        if mailport:
+        if mailport := info.smtp_port:
             mailhost = (mailhost, mailport)
         smtp_secure = info.smtp_secure
         secure_args = _adapt_smtp_secure(smtp_secure)
@@ -96,7 +95,7 @@ def _adapt_smtp_secure(value):
         # a string - wrap it in the tuple
         return (value,)
     if isinstance(value, config.Config):
-        assert set(value.keys()) <= set(['keyfile', 'certfile'])
+        assert set(value.keys()) <= {'keyfile', 'certfile'}
         return (value.keyfile, value.certfile)
     if value:
         return ()

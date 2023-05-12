@@ -77,12 +77,10 @@ class SocketReader(object):
                     handler(chunk)
                 yield chunk
         else:
-            chunk = self._fp.read(chunk_size)
-            while chunk:
+            while chunk := self._fp.read(chunk_size):
                 for handler in self.handlers:
                     handler(chunk)
                 yield chunk
-                chunk = self._fp.read(chunk_size)
 
     def add_handler(self, handler):
         self.handlers.append(handler)
@@ -105,7 +103,7 @@ def response(data=None, code=200, headers=None, raw=False):
         'Content-Type': 'application/json'
     }
     if headers:
-        h.update(headers)
+        h |= headers
 
     if h['Cache-Control'] == 'no-cache':
         h['Pragma'] = 'no-cache'
@@ -181,12 +179,11 @@ def get_remote_ip():
 
 
 def is_ssl():
-    for header in ('X-Forwarded-Proto', 'X-Forwarded-Protocol'):
-        if header in flask.request.headers and (
-                flask.request.headers[header].lower() in ('https', 'ssl')
-        ):
-                    return True
-    return False
+    return any(
+        header in flask.request.headers
+        and (flask.request.headers[header].lower() in ('https', 'ssl'))
+        for header in ('X-Forwarded-Proto', 'X-Forwarded-Protocol')
+    )
 
 
 def _parse_auth_header():
@@ -228,10 +225,7 @@ def check_token(args):
     if access == 'delete' and flask.request.method != 'DELETE':
         logger.debug('check_token: Wrong access value in the token')
         return False
-    if validate_token(auth) is False:
-        return False
-    # Token is valid
-    return True
+    return validate_token(auth) is not False
 
 
 def check_signature():
@@ -244,14 +238,18 @@ def check_signature():
         logger.debug('No X-Signature header in request')
         return False
     sig = parse_content_signature(signature)
-    logger.debug('Parsed signature: {}'.format(sig))
+    logger.debug(f'Parsed signature: {sig}')
     sigdata = base64.b64decode(sig['data'])
     header_keys = sorted([
         x for x in headers.iterkeys() if x.startswith('X-Docker')
     ])
-    message = ','.join([flask.request.method, flask.request.path] +
-                       ['{}:{}'.format(k, headers[k]) for k in header_keys])
-    logger.debug('Signed message: {}'.format(message))
+    message = ','.join(
+        (
+            [flask.request.method, flask.request.path]
+            + [f'{k}:{headers[k]}' for k in header_keys]
+        )
+    )
+    logger.debug(f'Signed message: {message}')
     try:
         return pkey.verify(message_digest(message), sigdata, 'sha1')
     except RSA.RSAError as e:
@@ -261,10 +259,7 @@ def check_signature():
 
 def parse_content_signature(s):
     lst = [x.strip().split('=', 1) for x in s.split(';')]
-    ret = {}
-    for k, v in lst:
-        ret[k] = v
-    return ret
+    return dict(lst)
 
 
 def message_digest(s):
@@ -289,8 +284,12 @@ def api_error(message, code=400, headers=None):
 
 
 def gen_random_string(length=16):
-    return ''.join([random.choice(string.ascii_uppercase + string.digits)
-                    for x in range(length)])
+    return ''.join(
+        [
+            random.choice(string.ascii_uppercase + string.digits)
+            for _ in range(length)
+        ]
+    )
 
 
 def parse_repository_name(f):
@@ -341,9 +340,7 @@ def get_repository():
     if repository is None:
         return ('', '')
     parts = repository.rstrip('/').split('/', 1)
-    if len(parts) < 2:
-        return ('library', parts[0])
-    return (parts[0], parts[1])
+    return ('library', parts[0]) if len(parts) < 2 else (parts[0], parts[1])
 
 
 def get_endpoints(overcfg=None):

@@ -22,7 +22,7 @@ StringIO = compat.StringIO
 
 
 def comp(n, f, *args, **kwargs):
-    return (f(*args, **kwargs) for i in xrange(n))
+    return (f(*args, **kwargs) for _ in xrange(n))
 
 
 def rndstr(length=5):

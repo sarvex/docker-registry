@@ -12,10 +12,10 @@ def sha256_file(fp, data=None):
     if not fp:
         return h.hexdigest()
     while True:
-        buf = fp.read(4096)
-        if not buf:
+        if buf := fp.read(4096):
+            h.update(buf)
+        else:
             break
-        h.update(buf)
     return h.hexdigest()
 
 

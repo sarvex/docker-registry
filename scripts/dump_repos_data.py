@@ -45,9 +45,9 @@ def get_image_checksum(image_id):
 def dump_json(all_repos, all_checksums, filename):
     data = []
     for ((namespace, repos), images) in all_repos.iteritems():
-        images_checksums = []
-        for i in set(images):
-            images_checksums.append({'id': i, 'checksum': all_checksums[i]})
+        images_checksums = [
+            {'id': i, 'checksum': all_checksums[i]} for i in set(images)
+        ]
         data.append({
             'namespace': namespace,
             'repository': repos,

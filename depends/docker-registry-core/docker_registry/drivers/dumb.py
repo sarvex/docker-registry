@@ -41,12 +41,12 @@ class Storage(driver.Base):
 
     def get_size(self, path):
         if path not in self._storage:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
         return len(self._storage[path])
 
     def get_content(self, path):
         if path not in self._storage:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
         return self._storage[path]
 
     def put_content(self, path, content):
@@ -57,20 +57,15 @@ class Storage(driver.Base):
         if path in self._storage:
             del self._storage[path]
             return
-        # Directory like, get the list
-        ls = []
-        for k in self._storage.keys():
-            if (not k == path) and k.startswith(path):
-                ls.append(k)
-
+        ls = [k for k in self._storage.keys() if k != path and k.startswith(path)]
         if not len(ls):
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
         for item in ls:
             self.remove(item)
 
     def stream_read(self, path, bytes_range=None):
         if path not in self._storage:
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
 
         f = self._storage[path]
         nb_bytes = 0
@@ -108,10 +103,10 @@ class Storage(driver.Base):
         f = self._storage[path]
         try:
             while True:
-                buf = fp.read(self.buffer_size)
-                if not buf:
+                if buf := fp.read(self.buffer_size):
+                    f.write(buf)
+                else:
                     break
-                f.write(buf)
         except IOError:
             pass
 
@@ -121,13 +116,13 @@ class Storage(driver.Base):
 
         ls = []
         for k in self._storage.keys():
-            if (not k == path) and k.startswith(path or ''):
+            if k != path and k.startswith(path or ''):
                 prefix = '/'
                 if not k.startswith('/'):
                     prefix = ''
-                ls.append(prefix + "/".join(k.lstrip("/").split("/")[0:2]))
+                ls.append(prefix + "/".join(k.lstrip("/").split("/")[:2]))
 
         if not len(ls):
-            raise exceptions.FileNotFoundError('%s is not there' % path)
+            raise exceptions.FileNotFoundError(f'{path} is not there')
 
         return ls

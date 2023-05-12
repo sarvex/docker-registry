@@ -75,14 +75,13 @@ class Archive(lzma.LZMAFile):
     def _proxy(self, method, *args, **kwargs):
         if not self.compressed:
             return getattr(self._fp, method)(*args, **kwargs)
-        if self.compressed:
-            previous = self._fp.tell()
-            try:
-                return getattr(super(Archive, self), method)(*args, **kwargs)
-            except lzma._lzma.LZMAError:
-                self._fp.seek(previous)
-                self.compressed = False
-                return getattr(self._fp, method)(*args, **kwargs)
+        previous = self._fp.tell()
+        try:
+            return getattr(super(Archive, self), method)(*args, **kwargs)
+        except lzma._lzma.LZMAError:
+            self._fp.seek(previous)
+            self.compressed = False
+            return getattr(self._fp, method)(*args, **kwargs)
 
     def tell(self):
         return self._proxy('tell')
@@ -136,10 +135,10 @@ def serialize_tar_info(tar_info):
         filename = '/'
 
     if filename.startswith("./"):
-        filename = "/" + filename[2:]
+        filename = f"/{filename[2:]}"
 
     if filename.startswith("/.wh."):
-        filename = "/" + filename[5:]
+        filename = f"/{filename[5:]}"
         is_deleted = True
 
     if filename.startswith("/.wh."):
@@ -187,8 +186,7 @@ def get_image_files_from_fobj(layer_file):
     layer_file.seek(0)
     archive_file = Archive(layer_file)
     tar_file = tarfile.open(fileobj=archive_file)
-    files = read_tarfile(tar_file)
-    return files
+    return read_tarfile(tar_file)
 
 
 def get_image_files_json(image_id):
@@ -220,7 +218,7 @@ def get_file_info_map(file_infos):
     Convert a list of layer file info tuples to a dictionary using the
     first element (filename) as the key.
     '''
-    return dict((file_info[0], file_info[1:]) for file_info in file_infos)
+    return {file_info[0]: file_info[1:] for file_info in file_infos}
 
 
 def get_image_diff_cache(image_id):
@@ -296,7 +294,7 @@ def get_image_diff_json(image_id):
                     # otherwise it must have simply changed in the top layer
                     changed[filename] = info
                 del info_map[filename]
-    created.update(info_map)
+    created |= info_map
 
     # return dictionary of files grouped by file action
     diff_json = json.dumps({

@@ -82,8 +82,7 @@ def _get_image_layer(image_id, headers=None, bytes_range=None):
     # offload a lot of expensive I/O and get faster I/O
     if cfg.storage_redirect:
         try:
-            content_redirect_url = store.content_redirect_url(path)
-            if content_redirect_url:
+            if content_redirect_url := store.content_redirect_url(path):
                 return flask.redirect(content_redirect_url, 302)
         except IOError as e:
             logger.debug(str(e))
@@ -98,7 +97,7 @@ def _get_image_layer(image_id, headers=None, bytes_range=None):
     except exceptions.FileNotFoundError:
         # XXX why would that fail given we know the layer exists?
         pass
-    if bytes_range and bytes_range[1] == -1 and not layer_size == 0:
+    if bytes_range and bytes_range[1] == -1 and layer_size != 0:
         bytes_range = (bytes_range[0], layer_size)
 
     if bytes_range:
@@ -145,7 +144,7 @@ def _parse_bytes_range():
         logger.debug(log_msg)
         return
     bytes_range = range_header[6:].split('-')
-    if len(bytes_range) != 2 and not range_header[-1] == '-':
+    if len(bytes_range) != 2 and range_header[-1] != '-':
         logger.debug(log_msg)
         return
     if len(bytes_range) == 1 or bytes_range[1] == '':
@@ -162,11 +161,7 @@ def _parse_bytes_range():
 
 def _valid_bytes_range(bytes_range):
     length = bytes_range[1] - bytes_range[0] + 1
-    if bytes_range[0] < 0 or bytes_range[1] < 1:
-        return False
-    if length < 2:
-        return False
-    return True
+    return False if bytes_range[0] < 0 or bytes_range[1] < 1 else length >= 2
 
 
 @app.route('/v1/images/<image_id>/layer', methods=['GET'])
@@ -182,9 +177,12 @@ def get_image_layer(image_id, headers):
             headers['Accept-Ranges'] = 'bytes'
             bytes_range = _parse_bytes_range()
         repository = toolkit.get_repository()
-        if repository and store.is_private(*repository):
-            if not toolkit.validate_parent_access(image_id):
-                return toolkit.api_error('Image not found', 404)
+        if (
+            repository
+            and store.is_private(*repository)
+            and not toolkit.validate_parent_access(image_id)
+        ):
+            return toolkit.api_error('Image not found', 404)
         # If no auth token found, either standalone registry or privileged
         # access. In both cases, access is always "public".
         return _get_image_layer(image_id, headers, bytes_range)
@@ -214,14 +212,11 @@ def put_image_layer(image_id):
         # Careful, might work only with WSGI servers supporting chunked
         # encoding (Gunicorn)
         input_stream = flask.request.environ['wsgi.input']
-    # compute checksums
-    csums = []
     sr = toolkit.SocketReader(input_stream)
     h, sum_hndlr = checksums.simple_checksum_handler(json_data)
     sr.add_handler(sum_hndlr)
     store.stream_write(layer_path, sr)
-    csums.append('sha256:{0}'.format(h.hexdigest()))
-
+    csums = ['sha256:{0}'.format(h.hexdigest())]
     # We store the computed checksums for a later check
     save_checksums(image_id, csums)
     return toolkit.response()
@@ -266,9 +261,12 @@ def put_image_checksum(image_id):
 def get_image_json(image_id, headers):
     try:
         repository = toolkit.get_repository()
-        if repository and store.is_private(*repository):
-            if not toolkit.validate_parent_access(image_id):
-                return toolkit.api_error('Image not found', 404)
+        if (
+            repository
+            and store.is_private(*repository)
+            and not toolkit.validate_parent_access(image_id)
+        ):
+            return toolkit.api_error('Image not found', 404)
         # If no auth token found, either standalone registry or privileged
         # access. In both cases, access is always "public".
         return _get_image_json(image_id, headers)
@@ -384,9 +382,12 @@ def put_image_json(image_id):
 def get_image_files(image_id, headers):
     try:
         repository = toolkit.get_repository()
-        if repository and store.is_private(*repository):
-            if not toolkit.validate_parent_access(image_id):
-                return toolkit.api_error('Image not found', 404)
+        if (
+            repository
+            and store.is_private(*repository)
+            and not toolkit.validate_parent_access(image_id)
+        ):
+            return toolkit.api_error('Image not found', 404)
         # If no auth token found, either standalone registry or privileged
         # access. In both cases, access is always "public".
         data = layers.get_image_files_json(image_id)
@@ -407,9 +408,12 @@ def get_image_diff(image_id, headers):
         if not cache.redis_conn:
             return toolkit.api_error('Diff queue is disabled', 400)
         repository = toolkit.get_repository()
-        if repository and store.is_private(*repository):
-            if not toolkit.validate_parent_access(image_id):
-                return toolkit.api_error('Image not found', 404)
+        if (
+            repository
+            and store.is_private(*repository)
+            and not toolkit.validate_parent_access(image_id)
+        ):
+            return toolkit.api_error('Image not found', 404)
 
         # first try the cache
         diff_json = layers.get_image_diff_cache(image_id)

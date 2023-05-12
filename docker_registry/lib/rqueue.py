@@ -67,7 +67,7 @@ class BaseQueue(object):
         except AttributeError:
             return self._unpack(self.redis.lindex(self.key, val))
         except Exception as e:
-            log.error('Get item failed ** %s' % repr(e))
+            log.error(f'Get item failed ** {repr(e)}')
             return None
 
     def _pack(self, val):
@@ -83,10 +83,8 @@ class BaseQueue(object):
 
     def dump(self, fobj):
         """Destructively dump the contents of the queue into fp."""
-        next = self.redis.rpop(self.key)
-        while next:
+        while next := self.redis.rpop(self.key):
             fobj.write(next)
-            next = self.redis.rpop(self.key)
 
     def load(self, fobj):
         """Load the contents of the provided fobj into the queue."""
@@ -167,5 +165,5 @@ class CappedCollection(BaseQueue):
             popped = self.redis.rpop(self.key)
         else:
             queue, popped = self.redis.brpop(self.key)
-        log.debug('Popped ** %s ** from key ** %s **' % (popped, self.key))
+        log.debug(f'Popped ** {popped} ** from key ** {self.key} **')
         return self._unpack(popped)

@@ -18,7 +18,7 @@ dry_run = True
 
 
 def warning(msg):
-    print('# Warning: ' + msg, file=sys.stderr)
+    print(f'# Warning: {msg}', file=sys.stderr)
 
 
 def get_image_parent(image_id):
@@ -30,7 +30,7 @@ def get_image_parent(image_id):
         # Note(dmp): unicode patch
         info = store.get_json(image_json)
         if info['id'] != image_id:
-            warning('image_id != json image_id for image_id: ' + image_id)
+            warning(f'image_id != json image_id for image_id: {image_id}')
         parent_id = info.get('parent')
     except exceptions.FileNotFoundError:
         warning('graph is broken for image_id: {0}'.format(image_id))
@@ -52,9 +52,8 @@ def create_image_ancestry(image_id):
         ancestry.append(parent_id)
         create_image_ancestry(parent_id)
     ancestry_path = store.image_ancestry_path(image_id)
-    if dry_run is False:
-        if not store.exists(ancestry_path):
-            store.put_content(ancestry_path, json.dumps(ancestry))
+    if dry_run is False and not store.exists(ancestry_path):
+        store.put_content(ancestry_path, json.dumps(ancestry))
     ancestry_cache[image_id] = True
     print('Generated ancestry (size: {0}) '
           'for image_id: {1}'.format(len(ancestry), image_id))

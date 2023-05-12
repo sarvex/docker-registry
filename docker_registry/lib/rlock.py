@@ -23,7 +23,7 @@ class Lock(object):
         self.owns_lock = False
 
     def lock_key(self):
-        return "%s:locks:%s" % (self.lock_type, self.key)
+        return f"{self.lock_type}:locks:{self.key}"
 
     def __enter__(self):
         expires = time.time() + self.expires + 1
@@ -44,7 +44,6 @@ class Lock(object):
                 return expires
             except redis.WatchError:
                 print("Someone tinkered with the lock!")
-                pass
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.owns_lock:

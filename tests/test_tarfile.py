@@ -79,31 +79,28 @@ class TestTarfile(base.TestCase):
                 },
             },
         }
-        for file in expected.keys():
-            layer_fh = open(os.path.join(base.data_dir, file))
-            tar = tarfile.open(mode='r|*', fileobj=layer_fh)
-            member_count = 0
-            for member in tar:
-                member_count += 1
-                # check that we know the file names
-                msg = "in %s, did not find file %s" % (file, member.path)
-                l = len(filter(lambda x: member.path in x,
-                        expected[file].keys()))
-                assert (l > 0), msg
-                e = expected[file][member.path]
-                for attr in e["headers"].keys():
-                    msg = "in %s:%s, expected %s of %s, but got %s" % (
-                        file, member.path, attr, e["headers"][attr],
-                        getattr(member, attr))
-                    assert e["headers"][attr] == getattr(member, attr), msg
-                for attr in e["pax"].keys():
-                    msg = b"in %s:%s, expected %s of %s, but got %s".format(
-                        file, member.path, attr, e["pax"][attr],
-                        member.pax_headers[attr])
-                    assert e["pax"][attr] == member.pax_headers[attr], msg
+        for file, value in expected.items():
+            with open(os.path.join(base.data_dir, file)) as layer_fh:
+                tar = tarfile.open(mode='r|*', fileobj=layer_fh)
+                member_count = 0
+                for member in tar:
+                    member_count += 1
+                                # check that we know the file names
+                    msg = f"in {file}, did not find file {member.path}"
+                    l = len(filter(lambda x: member.path in x,
+                            expected[file].keys()))
+                    assert (l > 0), msg
+                    e = expected[file][member.path]
+                    for attr in e["headers"].keys():
+                        msg = f'in {file}:{member.path}, expected {attr} of {e["headers"][attr]}, but got {getattr(member, attr)}'
+                        assert e["headers"][attr] == getattr(member, attr), msg
+                    for attr in e["pax"].keys():
+                        msg = b"in %s:%s, expected %s of %s, but got %s".format(
+                            file, member.path, attr, e["pax"][attr],
+                            member.pax_headers[attr])
+                        assert e["pax"][attr] == member.pax_headers[attr], msg
 
-            assert member_count == len(expected[file])
-            layer_fh.close()
+                assert member_count == len(value)
 
     def test_tarsum(self):
         expected = {
@@ -111,18 +108,16 @@ class TestTarfile(base.TestCase):
             "511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158": "tarsum+sha256:ac672ee85da9ab7f9667ae3c32841d3e42f33cc52c273c23341dabba1c8b0c8b",  # noqa
             "xattr": "tarsum+sha256:e86f81a4d552f13039b1396ed03ca968ea9717581f9577ef1876ea6ff9b38c98",  # noqa
         }
-        for layer in expected.keys():
-            layer_fh = open(os.path.join(base.data_dir, layer, "layer.tar"))
-            json_fh = open(os.path.join(base.data_dir, layer, "json"))
+        for layer, value in expected.items():
+            with open(os.path.join(base.data_dir, layer, "layer.tar")) as layer_fh:
+                json_fh = open(os.path.join(base.data_dir, layer, "json"))
 
-            tarsum = checksums.TarSum(json_fh.read())
-            tar = tarfile.open(mode='r|*', fileobj=layer_fh)
-            for member in tar:
-                tarsum.append(member, tar)
-            sum = tarsum.compute()
-            msg = "layer %s, expected [%s] but got [%s]" % (
-                layer, expected[layer], sum)
-            assert expected[layer] == sum, msg
+                tarsum = checksums.TarSum(json_fh.read())
+                tar = tarfile.open(mode='r|*', fileobj=layer_fh)
+                for member in tar:
+                    tarsum.append(member, tar)
+                sum = tarsum.compute()
+                msg = f"layer {layer}, expected [{expected[layer]}] but got [{sum}]"
+                assert value == sum, msg
 
-            layer_fh.close()
             json_fh.close()

@@ -28,7 +28,7 @@ def monkeypatch_class(name, bases, namespace):
     assert len(bases) == 1, "Exactly one base class required"
     base = bases[0]
     for name, value in namespace.iteritems():
-        if name != "__metaclass__" and name != "__doc__":
+        if name not in ["__metaclass__", "__doc__"]:
             setattr(base, name, value)
     return base
 
@@ -42,9 +42,7 @@ class Config(object):
         return repr(self._config)
 
     def __getattr__(self, key):
-        if key not in self._config:
-            return None
-        return self._config[key]
+        return None if key not in self._config else self._config[key]
 
     def __getitem__(self, key):
         return getattr(self, key)
