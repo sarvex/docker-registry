@@ -97,7 +97,7 @@ setuptools.setup(
     install_requires=requirements,
     tests_require=open('./requirements/test.txt').read(),
     extras_require={
-        'bugsnag': ['bugsnag>=2.0,<2.1'],
+        'bugsnag': ['bugsnag>=2.0,<4.5'],
         'newrelic': ['newrelic>=2.22,<2.23'],
         'cors': ['Flask-cors>=1.8,<5.0'],
     }
