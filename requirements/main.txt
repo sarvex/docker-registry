@@ -1,6 +1,6 @@
 blinker==1.6.2
 Flask==2.3.3
-gevent==23.9.0.post1
+gevent==23.9.1
 gunicorn==21.2.0
 PyYAML==6.0.1
 requests==2.31.0
