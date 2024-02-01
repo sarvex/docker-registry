@@ -21,7 +21,7 @@ requirements = [line for line in requirements_txt]
 
 if ver < (3, 0):
     # Python 2 requires lzma backport
-    requirements.insert(0, 'backports.lzma==0.0.3,!=0.0.4')
+    requirements.insert(0, 'backports.lzma==0.0.14,!=0.0.4')
     if ver < (2, 7):
         # Python 2.6 requires additional libraries
         requirements.insert(0, 'argparse==1.2.1')
