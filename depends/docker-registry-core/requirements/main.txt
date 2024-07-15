@@ -1,4 +1,4 @@
 boto==2.34.0
 redis==4.4.4
-setuptools==65.5.1
+setuptools==70.0.0
 simplejson==3.6.2
